@@ -14,7 +14,7 @@ module.exports = {
       },
       NIP: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true,
         unique: true
       },
       password: {

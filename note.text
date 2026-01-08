@@ -1,3 +1,4 @@
 npm i express
 npm install --save-dev sequelize-cli
 npm install mysql2
+npm install bcrypt jsonwebtoken dotenv
