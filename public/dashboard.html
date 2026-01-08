@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Project Kabad</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <nav class="bg-green-600 text-white p-4 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold">Dashboard Keaktifan</h1>
+            <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-4 py-1 rounded shadow">Keluar</button>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-6">
+        <div class="bg-white p-6 rounded-lg shadow-sm mb-6 border-l-4 border-green-500">
+            <h2 class="text-lg font-bold mb-4 text-gray-800">Profil Pengguna</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <p class="text-sm text-gray-500">Nama</p>
+                    <p id="displayNama" class="font-semibold text-gray-800">-</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">NIP</p>
+                    <p id="displayNIP" class="font-semibold text-gray-800">-</p>
+                </div>
+                <div>
+                    <label class="text-sm text-gray-500 block">Input JP (Jam Perhari)</label>
+                    <input type="number" id="inputJP" class="border rounded px-2 py-1 w-full mt-1 focus:ring-2 focus:ring-green-400 outline-none" placeholder="Contoh: 8">
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-sm">
+            <h2 class="text-lg font-bold mb-4 text-gray-800">Upload Bukti Sertifikat (Januari - Desember)</h2>
+            <form id="uploadForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <script>
+                    const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", 
+                                  "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+                    
+                    months.forEach((month, index) => {
+                        document.write(`
+                            <div class="border p-4 rounded-md bg-gray-50">
+                                <label class="block font-semibold text-green-700 mb-2">${month}</label>
+                                <input type="file" name="file_${index + 1}" class="block w-full text-sm text-gray-500
+                                    file:mr-4 file:py-2 file:px-4
+                                    file:rounded-full file:border-0
+                                    file:text-sm file:font-semibold
+                                    file:bg-green-50 file:text-green-700
+                                    hover:file:bg-green-100 cursor-pointer">
+                            </div>
+                        `);
+                    });
+                </script>
+                
+                <div class="md:col-span-2 lg:col-span-3 mt-4">
+                    <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 shadow-lg transition">
+                        Simpan Semua Bukti
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Cek Token saat halaman dimuat
+        window.onload = function() {
+            const nama = localStorage.getItem('userNama');
+            const nip = localStorage.getItem('userNIP');
+
+            // Cek jika nilainya null, string "null", atau undefined, maka tampilkan "-"
+            document.getElementById('displayNama').innerText = (nama && nama !== "null") ? nama : '-';
+            document.getElementById('displayNIP').innerText = (nip && nip !== "null") ? nip : '-';
+        };
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/login.html';
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            formData.append('jp', document.getElementById('inputJP').value);
+
+            const response = await fetch('/api/keaktifan/upload', {
+                method: 'POST',
+                headers: { 
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                body: formData
+            });
+
+            if (response.ok) {
+                alert('Data berhasil disimpan ke server!');
+            } else {
+                alert('Gagal menyimpan data.');
+            }
+        });
+    </script>
+</body>
+</html>

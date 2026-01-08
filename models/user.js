@@ -21,9 +21,9 @@ module.exports = (sequelize, DataTypes) => {
     NIP: DataTypes.STRING,
     password: DataTypes.STRING,
     role: DataTypes.STRING
-  }, {
+    }, {
     sequelize,
     modelName: 'User',
-  });
+    });
   return User;
 };
