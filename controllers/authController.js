@@ -44,7 +44,7 @@ exports.login = async (req, res) => {
             token, 
             role: user.role, 
             nama: user.nama, 
-            nip: user.nip 
+            nip: user.NIP 
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
