@@ -1,17 +1,36 @@
 const express = require('express');
 const app = express();
-const db = require('./models');
-const authRoutes = require('./routes/authroute'); // Sesuaikan nama file rute Anda
+const port = 3000;
 
-// PENTING: Middleware ini harus ada agar req.body tidak undefined
-app.use(express.json()); 
+// Import Routes
+const authRoute = require('./routes/authroute');
+const userRoute = require('./routes/userroute'); // Import route user yang baru
+
+// Middleware untuk memproses JSON dan URL-encoded body
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/api/auth', authRoutes);
+// Routing Utama
+app.get('/', (req, res) => {
+    res.send('API Project Kabad Running...');
+});
 
-const PORT = 3000;
-db.sequelize.sync().then(() => {
-    app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
+// Endpoint untuk Autentikasi (Register & Login)
+app.use('/auth', authRoute);
+
+// Endpoint untuk Manajemen User (Update Profil & Hapus Akun)
+app.use('/user', userRoute);
+
+// Error Handling Middleware (Opsional tapi disarankan)
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({
+        message: 'Terjadi kesalahan pada server',
+        error: err.message
     });
+});
+
+// Menjalankan Server
+app.listen(port, () => {
+    console.log(`Server berjalan di http://localhost:${port}`);
 });
