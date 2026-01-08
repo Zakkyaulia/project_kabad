@@ -29,10 +29,18 @@ exports.login = async (req, res) => {
         const { nama, password } = req.body;
 
         const user = await User.findOne({ where: { nama } });
-        if (!user) return res.status(404).json({ message: "User tidak ditemukan" });
+        
+        // Ubah: Jangan beri tahu jika user tidak ditemukan secara spesifik
+        if (!user) {
+            return res.status(401).json({ message: "Username atau password salah" });
+        }
 
         const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(401).json({ message: "Password salah" });
+        
+        // Ubah: Pesan disamakan dengan di atas
+        if (!isMatch) {
+            return res.status(401).json({ message: "Username atau password salah" });
+        }
 
         const token = jwt.sign({ id: user.id, role: user.role }, 'RAHASIA', { expiresIn: '1d' });
         res.json({ message: "Login Berhasil", token, role: user.role });
