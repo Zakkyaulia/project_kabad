@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daftar - Project Kabad</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="/js/auth.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <style>body { font-family: 'Plus Jakarta Sans', sans-serif; }</style>
@@ -18,19 +19,19 @@
         <form onsubmit="handleRegister(event)" class="space-y-5">
             <div>
                 <label class="block text-sm font-semibold text-slate-700 mb-2">Nama Lengkap</label>
-                <input type="text" name="nama" required class="w-full px-4 py-3.5 rounded-xl border border-slate-200 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all">
+                <input type="text" name="nama" required class="w-full px-4 py-3.5 rounded-xl border border-slate-200 focus:ring-4 focus:ring-green-500/10 focus:border-green-500 outline-none transition-all">
             </div>
             <div>
                 <label class="block text-sm font-semibold text-slate-700 mb-2">NIP</label>
-                <input type="text" name="nip" required class="w-full px-4 py-3.5 rounded-xl border border-slate-200 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all">
+                <input type="text" name="nip" required class="w-full px-4 py-3.5 rounded-xl border border-slate-200 focus:ring-4 focus:ring-green-500/10 focus:border-green-500 outline-none transition-all">
             </div>
             <div>
                 <label class="block text-sm font-semibold text-slate-700 mb-2">Password</label>
-                <input type="password" name="password" required class="w-full px-4 py-3.5 rounded-xl border border-slate-200 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all">
+                <input type="password" name="password" required class="w-full px-4 py-3.5 rounded-xl border border-slate-200 focus:ring-4 focus:ring-green-500/10 focus:border-green-500 outline-none transition-all">
             </div>
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all transform active:scale-95">Daftar Sekarang</button>
+            <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all transform active:scale-95">Daftar Sekarang</button>
         </form>
-        <p class="mt-8 text-center text-slate-600">Sudah punya akun? <a href="/login" class="text-blue-600 font-bold">Login</a></p>
+        <p class="mt-8 text-center text-slate-600">Sudah punya akun? <a href="/login" class="text-green-600 font-bold hover:underline">Login</a></p>
     </div>
 </body>
 </html>

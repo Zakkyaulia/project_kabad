@@ -10,11 +10,28 @@ async function handleLogin(event) {
         const result = await res.json();
         if (res.ok) {
             localStorage.setItem('token', result.token);
-            localStorage.setItem('userNama', result.nama); // Simpan Nama
-            localStorage.setItem('userNIP', result.nip);   // Simpan NIP
-            window.location.href = '/dashboard';
-        } else { alert(result.message); }
-    } catch (e) { alert('Server error'); }
+            localStorage.setItem('userNama', result.nama);
+            localStorage.setItem('userNIP', result.nip);
+            
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil Masuk!',
+                text: 'Selamat datang.',
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => {
+                window.location.href = '/dashboard';
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Login Gagal',
+                text: result.message
+            });
+        }
+    } catch (e) {
+        Swal.fire('Error', 'Tidak dapat terhubung ke server', 'error');
+    }
 }
 
 async function handleRegister(event) {
@@ -28,8 +45,21 @@ async function handleRegister(event) {
         });
         const result = await res.json();
         if (res.ok) {
-            alert('Berhasil daftar! Silakan login.');
-            window.location.href = '/login';
-        } else { alert(result.message); }
-    } catch (e) { alert('Server error'); }
+            Swal.fire({
+                icon: 'success',
+                title: 'Registrasi Berhasil',
+                text: 'Akun Anda telah dibuat. Silakan login.',
+            }).then(() => {
+                window.location.href = '/login';
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal Daftar',
+                text: result.message
+            });
+        }
+    } catch (e) {
+        Swal.fire('Error', 'Server error', 'error');
+    }
 }

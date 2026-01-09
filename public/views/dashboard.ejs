@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Project Kabad</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <style>body { font-family: 'Plus Jakarta Sans', sans-serif; }</style>
 </head>
@@ -57,8 +58,8 @@
             </div>
 
             <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex items-center gap-6">
-                <div class="bg-blue-50 p-4 rounded-2xl">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div class="bg-green-50 p-4 rounded-2xl">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
@@ -146,24 +147,21 @@
                 const data = await response.json();
                 const body = document.getElementById('keaktifanBody');
                 const totalCount = document.getElementById('totalCount');
-                const totalJPDisplay = document.getElementById('totalJP');
+                const totalJP = document.getElementById('totalJP');
                 
                 body.innerHTML = '';
                 
-                // --- LOGIKA PERHITUNGAN TOTAL ---
-                let totalJP = 0;
-                totalCount.innerText = data.length; // Menampilkan total sertifikat
+                let sumJP = 0;
+                totalCount.innerText = data.length;
 
                 if (data.length === 0) {
                     body.innerHTML = `<tr><td colspan="4" class="px-8 py-10 text-center text-slate-400">Belum ada data bukti kegiatan.</td></tr>`;
-                    totalJPDisplay.innerText = 0;
+                    totalJP.innerText = 0;
                     return;
                 }
 
                 data.forEach(item => {
-                    // Akumulasi JP
-                    totalJP += parseInt(item.JP || 0);
-
+                    sumJP += parseInt(item.JP || 0);
                     const tglAwal = item.tanggal_mulai ? new Date(item.tanggal_mulai).toLocaleDateString('id-ID') : '-';
                     const tglAkhir = item.tanggal_selesai ? new Date(item.tanggal_selesai).toLocaleDateString('id-ID') : '-';
 
@@ -186,10 +184,7 @@
                             </td>
                         </tr>`;
                 });
-
-                // Update tampilan total JP
-                totalJPDisplay.innerText = totalJP;
-
+                totalJP.innerText = sumJP;
             } catch (err) {
                 console.error('Error:', err);
             }
@@ -202,7 +197,7 @@
             const jp = parseInt(document.getElementById('jpInput').value);
 
             if (isNaN(jp) || jp <= 0) {
-                alert("Kesalahan: Jam Perhari (JP) harus berupa angka positif dan lebih besar dari 0!");
+                Swal.fire('Input Salah', 'Jam Perhari (JP) harus angka positif!', 'warning');
                 return;
             }
 
@@ -210,7 +205,7 @@
             const tglSelesai = new Date(tglSelesaiVal);
 
             if (tglSelesai < tglMulai) {
-                alert("Kesalahan: Tanggal selesai tidak boleh mendahului tanggal mulai!");
+                Swal.fire('Rentang Salah', 'Tanggal selesai tidak boleh sebelum tanggal mulai!', 'warning');
                 return;
             }
 
@@ -223,31 +218,57 @@
                 });
 
                 if (res.ok) {
-                    alert('Bukti berhasil disimpan!');
+                    Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'Bukti kegiatan telah disimpan.' });
                     toggleModal();
                     loadData();
                 } else {
                     const error = await res.json();
-                    alert('Gagal: ' + (error.message || 'Terjadi kesalahan server'));
+                    Swal.fire('Gagal', error.message || 'Terjadi kesalahan server', 'error');
                 }
             } catch (err) { 
-                alert('Error koneksi ke server'); 
+                Swal.fire('Error', 'Gagal terhubung ke server', 'error'); 
             }
         };
 
         async function deleteData(id) {
-            if (confirm('Yakin ingin menghapus data ini?')) {
-                await fetch(`/api/keaktifan/${id}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                loadData();
-            }
+            Swal.fire({
+                title: 'Apakah Anda yakin?',
+                text: "Data yang dihapus tidak bisa dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#ef4444',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    const res = await fetch(`/api/keaktifan/${id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        Swal.fire('Terhapus!', 'Data berhasil dihapus.', 'success');
+                        loadData();
+                    }
+                }
+            });
         }
 
         function logout() {
-            localStorage.clear();
-            window.location.href = '/login';
+            Swal.fire({
+                title: 'Keluar?',
+                text: "Anda akan keluar dari sesi ini.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, Keluar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    localStorage.clear();
+                    window.location.href = '/login';
+                }
+            });
         }
     </script>
 </body>
