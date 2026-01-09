@@ -23,7 +23,9 @@ module.exports = (sequelize, DataTypes) => {
     file_sertif: DataTypes.STRING,
     bulan: DataTypes.STRING,
     status_sertif: DataTypes.STRING,
-    catatan: DataTypes.TEXT
+    catatan: DataTypes.TEXT,
+    tanggal_mulai: DataTypes.DATEONLY,
+    tanggal_selesai: DataTypes.DATEONLY
   }, {
     sequelize,
     modelName: 'BuktiKeaktifan',

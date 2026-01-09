@@ -45,6 +45,12 @@ module.exports = {
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE
+      },
+      tanggal_mulai: {
+        type: Sequelize.DATEONLY
+      },
+      tanggal_selesai: {
+        type: Sequelize.DATEONLY
       }
     });
   },

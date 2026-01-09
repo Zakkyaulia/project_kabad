@@ -10,6 +10,8 @@ async function handleLogin(event) {
         const result = await res.json();
         if (res.ok) {
             localStorage.setItem('token', result.token);
+            localStorage.setItem('userNama', result.nama); // Simpan Nama
+            localStorage.setItem('userNIP', result.nip);   // Simpan NIP
             window.location.href = '/dashboard';
         } else { alert(result.message); }
     } catch (e) { alert('Server error'); }
