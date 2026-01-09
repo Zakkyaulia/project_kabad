@@ -43,15 +43,29 @@
             </button>
         </div>
 
-        <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 mb-10 flex items-center gap-6">
-            <div class="bg-green-50 p-4 rounded-2xl">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+            <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex items-center gap-6">
+                <div class="bg-green-50 p-4 rounded-2xl">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">Total Sertifikat</p>
+                    <p id="totalCount" class="text-4xl font-black text-slate-800 mt-1">0</p>
+                </div>
             </div>
-            <div>
-                <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">Total Bukti Aktif</p>
-                <p id="totalCount" class="text-4xl font-black text-slate-800 mt-1">0</p>
+
+            <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex items-center gap-6">
+                <div class="bg-blue-50 p-4 rounded-2xl">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">Total Akumulasi JP</p>
+                    <p id="totalJP" class="text-4xl font-black text-slate-800 mt-1">0</p>
+                </div>
             </div>
         </div>
 
@@ -109,7 +123,6 @@
         const token = localStorage.getItem('token');
         if (!token) window.location.href = '/login';
 
-        // Load profile
         window.onload = () => {
             document.getElementById('displayNama').innerText = localStorage.getItem('userNama') || 'User';
             document.getElementById('displayNIP').innerText = 'NIP: ' + (localStorage.getItem('userNIP') || '-');
@@ -127,75 +140,100 @@
                 const response = await fetch('/api/keaktifan', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+                
+                if (!response.ok) throw new Error("Gagal mengambil data");
+
                 const data = await response.json();
                 const body = document.getElementById('keaktifanBody');
+                const totalCount = document.getElementById('totalCount');
+                const totalJPDisplay = document.getElementById('totalJP');
+                
                 body.innerHTML = '';
-                document.getElementById('totalCount').innerText = data.length;
+                
+                // --- LOGIKA PERHITUNGAN TOTAL ---
+                let totalJP = 0;
+                totalCount.innerText = data.length; // Menampilkan total sertifikat
+
+                if (data.length === 0) {
+                    body.innerHTML = `<tr><td colspan="4" class="px-8 py-10 text-center text-slate-400">Belum ada data bukti kegiatan.</td></tr>`;
+                    totalJPDisplay.innerText = 0;
+                    return;
+                }
 
                 data.forEach(item => {
+                    // Akumulasi JP
+                    totalJP += parseInt(item.JP || 0);
+
+                    const tglAwal = item.tanggal_mulai ? new Date(item.tanggal_mulai).toLocaleDateString('id-ID') : '-';
+                    const tglAkhir = item.tanggal_selesai ? new Date(item.tanggal_selesai).toLocaleDateString('id-ID') : '-';
+
                     body.innerHTML += `
                         <tr class="hover:bg-slate-50/50 transition-colors">
                             <td class="px-8 py-5">
-                                <span class="text-slate-700 font-semibold">${item.nama_sertif || 'Tanpa Nama'}</span>
+                                <div class="flex flex-col">
+                                    <span class="text-slate-700 font-semibold">${item.nama_sertif}</span>
+                                    <span class="text-xs text-slate-400">File: ${item.file_sertif}</span>
+                                </div>
                             </td>
                             <td class="px-8 py-5 text-slate-600 text-sm">
-                                ${item.tanggal_mulai || '-'} s/d ${item.tanggal_selesai || '-'}
+                                ${tglAwal} - ${tglAkhir}
                             </td>
-                            <td class="px-8 py-5 text-slate-600 font-medium">${item.JP || 0}</td>
+                            <td class="px-8 py-5 text-slate-600 font-medium">${item.JP} JP</td>
                             <td class="px-8 py-5 text-right">
-                                <button onclick="deleteData(${item.id})" class="text-red-500 hover:text-red-700 font-bold px-4 py-2 rounded-lg hover:bg-red-50 transition-all">Hapus</button>
+                                <button onclick="deleteData(${item.id})" class="text-red-500 hover:text-red-700 font-bold px-4 py-2 rounded-lg hover:bg-red-50 transition-all">
+                                    Hapus
+                                </button>
                             </td>
                         </tr>`;
                 });
-            } catch (err) { console.error('Gagal memuat data', err); }
+
+                // Update tampilan total JP
+                totalJPDisplay.innerText = totalJP;
+
+            } catch (err) {
+                console.error('Error:', err);
+            }
         }
 
         document.getElementById('formUpload').onsubmit = async (e) => {
-        e.preventDefault();
-        
-        // 1. Ambil Nilai Input
-        const tglMulaiVal = document.getElementById('tanggal_mulai').value;
-        const tglSelesaiVal = document.getElementById('tanggal_selesai').value;
-        const jp = parseInt(document.getElementById('jpInput').value);
+            e.preventDefault();
+            const tglMulaiVal = document.getElementById('tanggal_mulai').value;
+            const tglSelesaiVal = document.getElementById('tanggal_selesai').value;
+            const jp = parseInt(document.getElementById('jpInput').value);
 
-        // 2. Validasi Angka JP (Tidak boleh 0 atau minus)
-        if (isNaN(jp) || jp <= 0) {
-            alert("Kesalahan: Jam Perhari (JP) harus berupa angka positif dan lebih besar dari 0!");
-            return;
-        }
-
-        // 3. Validasi Rentang Waktu
-        const tglMulai = new Date(tglMulaiVal);
-        const tglSelesai = new Date(tglSelesaiVal);
-
-        if (tglSelesai < tglMulai) {
-            alert("Kesalahan: Tanggal selesai tidak boleh mendahului tanggal mulai!");
-            return;
-        }
-
-        // 4. Kirim Data jika Validasi Lolos
-        const formData = new FormData(e.target);
-        const token = localStorage.getItem('token');
-
-        try {
-            const res = await fetch('/api/keaktifan/upload', {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` },
-                body: formData
-            });
-
-            if (res.ok) {
-                alert('Bukti berhasil disimpan!');
-                toggleModal();
-                loadData();
-            } else {
-                const error = await res.json();
-                alert('Gagal: ' + (error.message || 'Terjadi kesalahan server'));
+            if (isNaN(jp) || jp <= 0) {
+                alert("Kesalahan: Jam Perhari (JP) harus berupa angka positif dan lebih besar dari 0!");
+                return;
             }
-        } catch (err) { 
-            alert('Error koneksi ke server'); 
-        }
-    };
+
+            const tglMulai = new Date(tglMulaiVal);
+            const tglSelesai = new Date(tglSelesaiVal);
+
+            if (tglSelesai < tglMulai) {
+                alert("Kesalahan: Tanggal selesai tidak boleh mendahului tanggal mulai!");
+                return;
+            }
+
+            const formData = new FormData(e.target);
+            try {
+                const res = await fetch('/api/keaktifan/upload', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+
+                if (res.ok) {
+                    alert('Bukti berhasil disimpan!');
+                    toggleModal();
+                    loadData();
+                } else {
+                    const error = await res.json();
+                    alert('Gagal: ' + (error.message || 'Terjadi kesalahan server'));
+                }
+            } catch (err) { 
+                alert('Error koneksi ke server'); 
+            }
+        };
 
         async function deleteData(id) {
             if (confirm('Yakin ingin menghapus data ini?')) {

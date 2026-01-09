@@ -1,5 +1,19 @@
 const { BuktiKeaktifan } = require('../models');
 
+// Ambil semua data bukti milik user login
+exports.getKeaktifan = async (req, res) => {
+    try {
+        const id_user = req.user.id;
+        const data = await BuktiKeaktifan.findAll({
+            where: { id_user },
+            order: [['createdAt', 'DESC']]
+        });
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 exports.uploadBukti = async (req, res) => {
     try {
         const id_user = req.user.id;
@@ -24,6 +38,17 @@ exports.uploadBukti = async (req, res) => {
         res.status(201).json({ message: "Semua bukti berhasil disimpan" });
     } catch (error) {
         console.error("Error Upload:", error); 
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Tambahkan juga fungsi delete agar button hapus berfungsi
+exports.deleteKeaktifan = async (req, res) => {
+    try {
+        const { id } = req.params;
+        await BuktiKeaktifan.destroy({ where: { id, id_user: req.user.id } });
+        res.json({ message: "Data berhasil dihapus" });
+    } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
