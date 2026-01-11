@@ -21,6 +21,8 @@ app.set('view engine', 'ejs');
 // Menyajikan file statis (CSS, JS Client-side seperti auth.js)
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // --- ROUTE UNTUK TAMPILAN (UI) ---
 app.get('/login', (req, res) => {
     res.render('login'); // Menampilkan public/views/login.ejs
@@ -37,6 +39,10 @@ app.get('/dashboard', (req, res) => {
 // Redirect halaman utama ke login
 app.get('/', (req, res) => {
     res.redirect('/login');
+});
+
+app.get('/admin', (req, res) => {
+    res.render('admin'); // Menampilkan public/views/admin.ejs
 });
 
 // --- ROUTE UNTUK API (LOGIKA BACKEND) ---

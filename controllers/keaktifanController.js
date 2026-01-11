@@ -1,4 +1,4 @@
-const { BuktiKeaktifan } = require('../models');
+const { BuktiKeaktifan, User } = require('../models');
 const path = require('path');
 
 // Ambil semua data bukti milik user login
@@ -50,6 +50,23 @@ exports.deleteKeaktifan = async (req, res) => {
         const { id } = req.params;
         await BuktiKeaktifan.destroy({ where: { id, id_user: req.user.id } });
         res.json({ message: "Data berhasil dihapus" });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.getAllKeaktifan = async (req, res) => {
+    try {
+        // Cek jika role bukan admin, tolak akses
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: "Hanya admin yang boleh mengakses" });
+        }
+
+        const data = await BuktiKeaktifan.findAll({
+            include: [{ model: User, attributes: ['nama', 'NIP'] }], // Sertakan data user
+            order: [['createdAt', 'DESC']]
+        });
+        res.json(data);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

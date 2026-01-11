@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Project Kabad</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Plus Jakarta Sans', sans-serif; }</style>
+</head>
+<body class="bg-slate-100 min-h-screen">
+    <nav class="bg-slate-800 text-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center">
+                    <span class="text-white font-bold text-xl">A</span>
+                </div>
+                <h1 class="text-xl font-bold">Admin <span class="text-green-400">Panel</span></h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span id="adminName" class="font-medium"></span>
+                <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg font-bold transition-all text-sm">
+                    Keluar
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-6 py-10">
+        <div class="mb-10">
+            <h2 class="text-3xl font-extrabold text-slate-800">Semua Laporan Pegawai</h2>
+            <p class="text-slate-500">Monitor dan verifikasi bukti keaktifan seluruh anggota.</p>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 border-b border-slate-100">
+                        <tr>
+                            <th class="px-8 py-5 text-xs font-bold text-slate-400 uppercase">Nama Pegawai / NIP</th>
+                            <th class="px-8 py-5 text-xs font-bold text-slate-400 uppercase">Sertifikat</th>
+                            <th class="px-8 py-5 text-xs font-bold text-slate-400 uppercase">JP</th>
+                            <th class="px-8 py-5 text-xs font-bold text-slate-400 uppercase">Berkas</th> <th class="px-8 py-5 text-xs font-bold text-slate-400 uppercase">Status</th>
+                            <th class="px-8 py-5 text-xs font-bold text-slate-400 uppercase text-right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminTableBody" class="divide-y divide-slate-50">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const token = localStorage.getItem('token');
+        const role = localStorage.getItem('role');
+
+        // Proteksi Halaman: Jika bukan admin, tendang ke login
+        if (!token || role !== 'admin') {
+            window.location.href = '/login';
+        }
+
+        document.getElementById('adminName').innerText = "Halo, " + localStorage.getItem('userNama');
+
+        async function loadAllData() {
+            try {
+                // Kita akan buat API khusus admin nanti
+                const res = await fetch('/api/keaktifan/all', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const body = document.getElementById('adminTableBody');
+                body.innerHTML = '';
+
+                data.forEach(item => {
+                    body.innerHTML += `
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-8 py-5">
+                                <p class="font-bold text-slate-800">${item.User.nama}</p>
+                                <p class="text-xs text-slate-400">NIP: ${item.User.NIP || '-'}</p>
+                            </td>
+                            <td class="px-8 py-5 text-sm text-slate-600">
+                                ${item.nama_sertif}
+                            </td>
+                            <td class="px-8 py-5 font-bold text-slate-700">${item.JP}</td>
+                            
+                            <td class="px-8 py-5">
+                                <div class="flex flex-col gap-1">
+                                    <a href="/uploads/${item.file_sertif}" target="_blank" class="text-blue-600 hover:text-blue-800 text-xs font-bold flex items-center gap-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                        Lihat File
+                                    </a>
+                                    <a href="/uploads/${item.file_sertif}" download="${item.nama_sertif}" class="text-green-600 hover:text-green-800 text-xs font-bold flex items-center gap-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                        </svg>
+                                        Download
+                                    </a>
+                                </div>
+                            </td>
+
+                            <td class="px-8 py-5">
+                                <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase ${item.status_sertif === 'disetujui' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">
+                                    ${item.status_sertif}
+                                </span>
+                            </td>
+                            <td class="px-8 py-5 text-right space-x-2">
+                                <button onclick="deleteData(${item.id})" class="bg-red-50 text-red-500 hover:bg-red-100 p-2 rounded-lg transition-all" title="Hapus Data">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (err) { console.error(err); }
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/login';
+        }
+
+        loadAllData();
+    </script>
+</body>
+</html>
