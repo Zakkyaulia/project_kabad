@@ -41,12 +41,13 @@
                             <th class="px-8 py-5 text-xs font-bold text-slate-400 uppercase">Nama Pegawai / NIP</th>
                             <th class="px-8 py-5 text-xs font-bold text-slate-400 uppercase">Sertifikat</th>
                             <th class="px-8 py-5 text-xs font-bold text-slate-400 uppercase">JP</th>
-                            <th class="px-8 py-5 text-xs font-bold text-slate-400 uppercase">Berkas</th> <th class="px-8 py-5 text-xs font-bold text-slate-400 uppercase">Status</th>
+                            <th class="px-8 py-5 text-xs font-bold text-slate-400 uppercase">Berkas</th> 
+                            <th class="px-8 py-5 text-xs font-bold text-slate-400 uppercase">Status</th>
                             <th class="px-8 py-5 text-xs font-bold text-slate-400 uppercase text-right">Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="adminTableBody" class="divide-y divide-slate-50">
-                        </tbody>
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -56,7 +57,6 @@
         const token = localStorage.getItem('token');
         const role = localStorage.getItem('role');
 
-        // Proteksi Halaman: Jika bukan admin, tendang ke login
         if (!token || role !== 'admin') {
             window.location.href = '/login';
         }
@@ -65,7 +65,6 @@
 
         async function loadAllData() {
             try {
-                // Kita akan buat API khusus admin nanti
                 const res = await fetch('/api/keaktifan/all', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -74,6 +73,13 @@
                 body.innerHTML = '';
 
                 data.forEach(item => {
+                    // Penentuan warna background dropdown berdasarkan status
+                    const statusColor = {
+                        'pending': 'bg-yellow-100 text-yellow-700',
+                        'disetujui': 'bg-green-100 text-green-700',
+                        'ditolak': 'bg-red-100 text-red-700'
+                    };
+
                     body.innerHTML += `
                         <tr class="hover:bg-slate-50 transition-all border-b border-slate-100">
                             <td class="px-8 py-5">
@@ -108,9 +114,12 @@
                                 </div>
                             </td>
                             <td class="px-8 py-5">
-                                <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${item.status_sertif === 'disetujui' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">
-                                    ${item.status_sertif}
-                                </span>
+                                <select onchange="updateStatus(${item.id}, this.value)" 
+                                    class="text-[10px] font-black uppercase tracking-wider rounded-full px-3 py-1 outline-none border-none cursor-pointer transition-all ${statusColor[item.status_sertif] || 'bg-slate-100'}">
+                                    <option value="pending" ${item.status_sertif === 'pending' ? 'selected' : ''}>PENDING</option>
+                                    <option value="disetujui" ${item.status_sertif === 'disetujui' ? 'selected' : ''}>DISETUJUI</option>
+                                    <option value="ditolak" ${item.status_sertif === 'ditolak' ? 'selected' : ''}>DITOLAK</option>
+                                </select>
                             </td>
                             <td class="px-8 py-5 text-right">
                                 <button onclick="deleteData(${item.id})" 
@@ -124,6 +133,53 @@
                     `;
                 });
             } catch (err) { console.error(err); }
+        }
+
+        async function updateStatus(id, newStatus) {
+            try {
+                const res = await fetch(`/api/keaktifan/status/${id}`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status_sertif: newStatus })
+                });
+
+                if (res.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Status Diperbarui',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+                    loadAllData(); // Refresh untuk memperbarui warna dropdown
+                } else {
+                    Swal.fire('Gagal', 'Gagal mengubah status', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function deleteData(id) {
+            Swal.fire({
+                title: 'Hapus data?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'Ya, Hapus'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    const res = await fetch(`/api/keaktifan/${id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.ok) loadAllData();
+                }
+            });
         }
 
         function logout() {

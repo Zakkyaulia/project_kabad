@@ -21,5 +21,6 @@ router.get('/', authenticate, keaktifanController.getKeaktifan);
 router.post('/upload', authenticate, upload.array('files'), keaktifanController.uploadBukti);
 router.delete('/:id', authenticate, keaktifanController.deleteKeaktifan);
 router.get('/all', authenticate, keaktifanController.getAllKeaktifan);
+router.put('/status/:id', authenticate, keaktifanController.updateStatus);
 
 module.exports = router;

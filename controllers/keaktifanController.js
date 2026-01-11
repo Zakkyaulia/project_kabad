@@ -71,3 +71,28 @@ exports.getAllKeaktifan = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+exports.updateStatus = async (req, res) => {
+    try {
+        // Cek role admin
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: "Hanya admin yang boleh mengubah status" });
+        }
+
+        const { id } = req.params;
+        const { status_sertif, catatan } = req.body;
+
+        const bukti = await BuktiKeaktifan.findByPk(id);
+        if (!bukti) {
+            return res.status(404).json({ message: "Data tidak ditemukan" });
+        }
+
+        await bukti.update({ 
+            status_sertif: status_sertif, 
+            catatan: catatan || bukti.catatan 
+        });
+
+        res.json({ message: "Status berhasil diperbarui" });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
