@@ -7,16 +7,15 @@ const authenticate = require('../middleware/authMiddleware');
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'uploads/') // Pastikan folder 'uploads' sudah ada
+        cb(null, 'uploads/') 
     },
     filename: function (req, file, cb) {
-        // Mengambil ekstensi file asli (misal: .jpg atau .pdf)
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         cb(null, uniqueSuffix + path.extname(file.originalname))
     }
 });
 
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ storage: storage }); 
 
 router.get('/', authenticate, keaktifanController.getKeaktifan);
 router.post('/upload', authenticate, upload.array('files'), keaktifanController.uploadBukti);

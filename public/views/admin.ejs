@@ -75,41 +75,46 @@
 
                 data.forEach(item => {
                     body.innerHTML += `
-                        <tr class="hover:bg-slate-50 transition-colors">
+                        <tr class="hover:bg-slate-50 transition-all border-b border-slate-100">
                             <td class="px-8 py-5">
                                 <p class="font-bold text-slate-800">${item.User.nama}</p>
-                                <p class="text-xs text-slate-400">NIP: ${item.User.NIP || '-'}</p>
+                                <p class="text-xs text-slate-400 font-medium">NIP: ${item.User.NIP || '-'}</p>
                             </td>
-                            <td class="px-8 py-5 text-sm text-slate-600">
+                            <td class="px-8 py-5 text-sm text-slate-600 font-medium">
                                 ${item.nama_sertif}
                             </td>
-                            <td class="px-8 py-5 font-bold text-slate-700">${item.JP}</td>
-                            
                             <td class="px-8 py-5">
-                                <div class="flex flex-col gap-1">
-                                    <a href="/uploads/${item.file_sertif}" target="_blank" class="text-blue-600 hover:text-blue-800 text-xs font-bold flex items-center gap-1">
+                                <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg text-xs font-bold">
+                                    ${item.JP} JP
+                                </span>
+                            </td>
+                            <td class="px-8 py-5">
+                                <div class="flex items-center gap-3">
+                                    <a href="/uploads/${item.file_sertif}" target="_blank" 
+                                    class="flex items-center gap-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1.5 rounded-lg text-xs font-bold transition-all">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                         </svg>
-                                        Lihat File
+                                        Buka
                                     </a>
-                                    <a href="/uploads/${item.file_sertif}" download="${item.nama_sertif}" class="text-green-600 hover:text-green-800 text-xs font-bold flex items-center gap-1">
+                                    <a href="/uploads/${item.file_sertif}" download="${item.nama_sertif}"
+                                    class="flex items-center gap-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-3 py-1.5 rounded-lg text-xs font-bold transition-all">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                         </svg>
-                                        Download
+                                        Unduh
                                     </a>
                                 </div>
                             </td>
-
                             <td class="px-8 py-5">
-                                <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase ${item.status_sertif === 'disetujui' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">
+                                <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${item.status_sertif === 'disetujui' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">
                                     ${item.status_sertif}
                                 </span>
                             </td>
-                            <td class="px-8 py-5 text-right space-x-2">
-                                <button onclick="deleteData(${item.id})" class="bg-red-50 text-red-500 hover:bg-red-100 p-2 rounded-lg transition-all" title="Hapus Data">
+                            <td class="px-8 py-5 text-right">
+                                <button onclick="deleteData(${item.id})" 
+                                        class="bg-red-50 text-red-500 hover:bg-red-500 hover:text-white p-2 rounded-xl transition-all shadow-sm">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                     </svg>
