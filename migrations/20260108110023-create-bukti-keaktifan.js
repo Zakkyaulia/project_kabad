@@ -30,9 +30,9 @@ module.exports = {
         type: Sequelize.STRING
       },
       status_sertif: {
-        type: Sequelize.ENUM('disetujui', 'ditolak'),
+        type: Sequelize.ENUM('disetujui', 'ditolak', 'pending'),
         allowNull: false,
-        defaultValue: 'disetujui'
+        defaultValue: 'pending'
       },
       catatan: {
         type: Sequelize.TEXT,

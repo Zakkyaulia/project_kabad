@@ -1,4 +1,5 @@
 const { BuktiKeaktifan } = require('../models');
+const path = require('path');
 
 // Ambil semua data bukti milik user login
 exports.getKeaktifan = async (req, res) => {
@@ -31,7 +32,8 @@ exports.uploadBukti = async (req, res) => {
             tanggal_mulai: tanggal_mulai,
             tanggal_selesai: tanggal_selesai,
             bulan: new Date().getMonth() + 1, 
-            status_sertif: 'disetujui'
+            status_sertif: 'pending',
+            catatan: 'Menunggu verifikasi'
         }));
 
         await BuktiKeaktifan.bulkCreate(uploads);
