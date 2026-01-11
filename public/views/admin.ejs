@@ -28,14 +28,35 @@
     </nav>
 
     <main class="container mx-auto px-6 py-10">
-        <div class="mb-10">
-            <h2 class="text-3xl font-extrabold text-slate-800">Semua Laporan Pegawai</h2>
-            <p class="text-slate-500">Monitor dan verifikasi bukti keaktifan seluruh anggota.</p>
+        <div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+                <h2 class="text-3xl font-extrabold text-slate-800">Semua Laporan Pegawai</h2>
+                <p class="text-slate-500">Monitor dan verifikasi bukti keaktifan seluruh anggota.</p>
+            </div>
+            
+            <div class="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+                <div class="relative flex-1 md:w-64">
+                    <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Cari Nama atau NIP..." 
+                        class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-green-500 outline-none transition-all text-sm">
+                    <div class="absolute left-3 top-3 text-slate-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                </div>
+                <select id="statusFilter" onchange="filterTable()" 
+                    class="px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-green-500 outline-none transition-all text-sm bg-white cursor-pointer">
+                    <option value="all">Semua Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="disetujui">Disetujui</option>
+                    <option value="ditolak">Ditolak</option>
+                </select>
+            </div>
         </div>
 
         <div class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
             <div class="overflow-x-auto">
-                <table class="w-full text-left">
+                <table class="w-full text-left" id="adminTable">
                     <thead class="bg-slate-50 border-b border-slate-100">
                         <tr>
                             <th class="px-8 py-5 text-xs font-bold text-slate-400 uppercase">Nama Pegawai / NIP</th>
@@ -48,8 +69,11 @@
                         </tr>
                     </thead>
                     <tbody id="adminTableBody" class="divide-y divide-slate-50">
-                    </tbody>
+                        </tbody>
                 </table>
+            </div>
+            <div id="noDataMessage" class="hidden py-20 text-center text-slate-400 font-medium">
+                Data yang Yang Mulia cari tidak ditemukan.
             </div>
         </div>
     </main>
@@ -57,6 +81,7 @@
     <script>
         const token = localStorage.getItem('token');
         const role = localStorage.getItem('role');
+        let allData = []; // Menyimpan data mentah dari API
 
         if (!token || role !== 'admin') {
             window.location.href = '/login';
@@ -69,79 +94,114 @@
                 const res = await fetch('/api/keaktifan/all', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                const data = await res.json();
-                const body = document.getElementById('adminTableBody');
-                body.innerHTML = '';
+                allData = await res.json();
+                renderTable(allData);
+            } catch (err) { 
+                console.error(err); 
+            }
+        }
 
-                data.forEach(item => {
-                    const statusColor = {
-                        'pending': 'bg-yellow-100 text-yellow-700',
-                        'disetujui': 'bg-green-100 text-green-700',
-                        'ditolak': 'bg-red-100 text-red-700'
-                    };
+        // Fungsi untuk merender data ke HTML
+        function renderTable(data) {
+            const body = document.getElementById('adminTableBody');
+            body.innerHTML = '';
 
-                    const tglAwal = item.tanggal_mulai ? new Date(item.tanggal_mulai).toLocaleDateString('id-ID') : '-';
-                    const tglAkhir = item.tanggal_selesai ? new Date(item.tanggal_selesai).toLocaleDateString('id-ID') : '-';
+            data.forEach(item => {
+                const statusColor = {
+                    'pending': 'bg-yellow-100 text-yellow-700',
+                    'disetujui': 'bg-green-100 text-green-700',
+                    'ditolak': 'bg-red-100 text-red-700'
+                };
 
-                    body.innerHTML += `
-                        <tr class="hover:bg-slate-50 transition-all border-b border-slate-100">
-                            <td class="px-8 py-5">
-                                <p class="font-bold text-slate-800">${item.User.nama}</p>
-                                <p class="text-xs text-slate-400 font-medium">NIP: ${item.User.NIP || '-'}</p>
-                            </td>
-                            <td class="px-8 py-5 text-sm text-slate-600 font-medium">
-                                ${item.nama_sertif}
-                            </td>
-                            <td class="px-8 py-5 text-xs text-slate-600">
-                                <div class="flex flex-col">
-                                    <span class="font-semibold text-slate-500 uppercase text-[10px]">Rentang:</span>
-                                    <span>${tglAwal} s/d ${tglAkhir}</span>
-                                </div>
-                            </td>
-                            <td class="px-8 py-5">
-                                <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg text-xs font-bold">
-                                    ${item.JP} JP
-                                </span>
-                            </td>
-                            <td class="px-8 py-5">
-                                <div class="flex items-center gap-3">
-                                    <a href="/uploads/${item.file_sertif}" target="_blank" 
-                                    class="flex items-center gap-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1.5 rounded-lg text-xs font-bold transition-all">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                        </svg>
-                                        Buka
-                                    </a>
-                                    <a href="/uploads/${item.file_sertif}" download="${item.nama_sertif}"
-                                    class="flex items-center gap-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-3 py-1.5 rounded-lg text-xs font-bold transition-all">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                        </svg>
-                                        Unduh
-                                    </a>
-                                </div>
-                            </td>
-                            <td class="px-8 py-5">
-                                <select onchange="updateStatus(${item.id}, this.value)" 
-                                    class="text-[10px] font-black uppercase tracking-wider rounded-full px-3 py-1 outline-none border-none cursor-pointer transition-all ${statusColor[item.status_sertif] || 'bg-slate-100'}">
-                                    <option value="pending" ${item.status_sertif === 'pending' ? 'selected' : ''}>PENDING</option>
-                                    <option value="disetujui" ${item.status_sertif === 'disetujui' ? 'selected' : ''}>DISETUJUI</option>
-                                    <option value="ditolak" ${item.status_sertif === 'ditolak' ? 'selected' : ''}>DITOLAK</option>
-                                </select>
-                            </td>
-                            <td class="px-8 py-5 text-right">
-                                <button onclick="deleteData(${item.id})" 
-                                        class="bg-red-50 text-red-500 hover:bg-red-500 hover:text-white p-2 rounded-xl transition-all shadow-sm">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                const tglAwal = item.tanggal_mulai ? new Date(item.tanggal_mulai).toLocaleDateString('id-ID') : '-';
+                const tglAkhir = item.tanggal_selesai ? new Date(item.tanggal_selesai).toLocaleDateString('id-ID') : '-';
+
+                body.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition-all border-b border-slate-100 table-row-item">
+                        <td class="px-8 py-5">
+                            <p class="font-bold text-slate-800 search-name">${item.User.nama}</p>
+                            <p class="text-xs text-slate-400 font-medium search-nip">NIP: ${item.User.NIP || '-'}</p>
+                        </td>
+                        <td class="px-8 py-5 text-sm text-slate-600 font-medium">
+                            ${item.nama_sertif}
+                        </td>
+                        <td class="px-8 py-5 text-xs text-slate-600">
+                            <div class="flex flex-col">
+                                <span class="font-semibold text-slate-500 uppercase text-[10px]">Rentang:</span>
+                                <span>${tglAwal} s/d ${tglAkhir}</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5">
+                            <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg text-xs font-bold">
+                                ${item.JP} JP
+                            </span>
+                        </td>
+                        <td class="px-8 py-5">
+                            <div class="flex items-center gap-3">
+                                <a href="/uploads/${item.file_sertif}" target="_blank" 
+                                class="flex items-center gap-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1.5 rounded-lg text-xs font-bold transition-all">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                     </svg>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                });
-            } catch (err) { console.error(err); }
+                                    Buka
+                                </a>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5">
+                            <select onchange="updateStatus(${item.id}, this.value)" 
+                                class="status-select text-[10px] font-black uppercase tracking-wider rounded-full px-3 py-1 outline-none border-none cursor-pointer transition-all ${statusColor[item.status_sertif] || 'bg-slate-100'}">
+                                <option value="pending" ${item.status_sertif === 'pending' ? 'selected' : ''}>PENDING</option>
+                                <option value="disetujui" ${item.status_sertif === 'disetujui' ? 'selected' : ''}>DISETUJUI</option>
+                                <option value="ditolak" ${item.status_sertif === 'ditolak' ? 'selected' : ''}>DITOLAK</option>
+                            </select>
+                        </td>
+                        <td class="px-8 py-5 text-right">
+                            <button onclick="deleteData(${item.id})" 
+                                    class="bg-red-50 text-red-500 hover:bg-red-500 hover:text-white p-2 rounded-xl transition-all shadow-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // FUNGSI UTAMA FILTER & PENCARIAN
+        function filterTable() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filterStatus = document.getElementById('statusFilter').value;
+            const rows = document.querySelectorAll('.table-row-item');
+            let foundCount = 0;
+
+            rows.forEach(row => {
+                const name = row.querySelector('.search-name').innerText.toLowerCase();
+                const nip = row.querySelector('.search-nip').innerText.toLowerCase();
+                const status = row.querySelector('.status-select').value;
+
+                const matchesSearch = name.includes(searchTerm) || nip.includes(searchTerm);
+                const matchesStatus = (filterStatus === 'all') || (status === filterStatus);
+
+                if (matchesSearch && matchesStatus) {
+                    row.style.display = "";
+                    foundCount++;
+                } else {
+                    row.style.display = "none";
+                }
+            });
+
+            // Tampilkan pesan jika tidak ada data
+            const noData = document.getElementById('noDataMessage');
+            const table = document.getElementById('adminTable');
+            if (foundCount === 0) {
+                noData.classList.remove('hidden');
+                table.classList.add('hidden');
+            } else {
+                noData.classList.add('hidden');
+                table.classList.remove('hidden');
+            }
         }
 
         async function updateStatus(id, newStatus) {
@@ -164,13 +224,11 @@
                         showConfirmButton: false,
                         timer: 2000
                     });
-                    loadAllData(); // Refresh untuk memperbarui warna dropdown
-                } else {
-                    Swal.fire('Gagal', 'Gagal mengubah status', 'error');
+                    // Kita tidak perlu loadAllData() agar filter tidak reset. 
+                    // Cukup update warna di elemen terkait.
+                    loadAllData(); 
                 }
-            } catch (err) {
-                console.error(err);
-            }
+            } catch (err) { console.error(err); }
         }
 
         async function deleteData(id) {
