@@ -146,6 +146,13 @@
                                     </svg>
                                     Buka
                                 </a>
+                                <a href="/uploads/${item.file_sertif}" download="${item.nama_sertif}"
+                                class="flex items-center gap-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-3 py-1.5 rounded-lg text-xs font-bold transition-all">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                    </svg>
+                                    Unduh
+                                </a>
                             </div>
                         </td>
                         <td class="px-8 py-5">
@@ -224,8 +231,6 @@
                         showConfirmButton: false,
                         timer: 2000
                     });
-                    // Kita tidak perlu loadAllData() agar filter tidak reset. 
-                    // Cukup update warna di elemen terkait.
                     loadAllData(); 
                 }
             } catch (err) { console.error(err); }
