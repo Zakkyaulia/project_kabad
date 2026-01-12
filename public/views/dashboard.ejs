@@ -52,7 +52,7 @@
                     </svg>
                 </div>
                 <div>
-                    <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">Total Sertifikat</p>
+                    <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">Sertifikat Valid/Pending</p>
                     <p id="totalCount" class="text-4xl font-black text-slate-800 mt-1">0</p>
                 </div>
             </div>
@@ -146,27 +146,33 @@
 
                 const data = await response.json();
                 const body = document.getElementById('keaktifanBody');
-                const totalCount = document.getElementById('totalCount');
-                const totalJP = document.getElementById('totalJP');
+                const totalCountDisplay = document.getElementById('totalCount');
+                const totalJPDisplay = document.getElementById('totalJP');
                 
                 body.innerHTML = '';
                 
                 let sumJP = 0;
-                totalCount.innerText = data.length;
+                let validSertifCount = 0; // Inisialisasi penghitung sertifikat
 
                 if (data.length === 0) {
                     body.innerHTML = `<tr><td colspan="4" class="px-8 py-10 text-center text-slate-400">Belum ada data bukti kegiatan.</td></tr>`;
-                    totalJP.innerText = 0;
+                    totalCountDisplay.innerText = 0;
+                    totalJPDisplay.innerText = 0;
                     return;
                 }
 
                 data.forEach(item => {
-                    sumJP += parseInt(item.JP || 0);
+                    // LOGIKA REVISI: Exclude status ditolak dari perhitungan JP DAN Total Sertifikat
+                    if (item.status_sertif !== 'ditolak') {
+                        sumJP += parseInt(item.JP || 0);
+                        validSertifCount++; // Hanya bertambah jika bukan 'ditolak'
+                    }
+
                     const tglAwal = item.tanggal_mulai ? new Date(item.tanggal_mulai).toLocaleDateString('id-ID') : '-';
                     const tglAkhir = item.tanggal_selesai ? new Date(item.tanggal_selesai).toLocaleDateString('id-ID') : '-';
 
-                    // Badge Status Warna
                     let statusBadge = '';
+                    let rowClass = ''; // Untuk membedakan baris yang ditolak
 
                     if (item.status_sertif === 'disetujui') {
                         statusBadge = '<span class="bg-green-100 text-green-700 px-2 py-1 rounded-md text-[10px] font-bold uppercase">Sertifikat Valid</span>';
@@ -174,10 +180,11 @@
                         statusBadge = '<span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-md text-[10px] font-bold uppercase">Menunggu Validasi Admin</span>';
                     } else {
                         statusBadge = '<span class="bg-red-100 text-red-700 px-2 py-1 rounded-md text-[10px] font-bold uppercase">Bukan Sertifikat / Ditolak</span>';
+                        rowClass = 'opacity-60 grayscale-[0.5]'; // Memberikan visual berbeda untuk data ditolak
                     }
 
                     body.innerHTML += `
-                        <tr class="hover:bg-slate-50/50 transition-colors">
+                        <tr class="hover:bg-slate-50/50 transition-colors ${rowClass}">
                             <td class="px-8 py-5">
                                 <div class="flex flex-col">
                                     <div class="flex items-center gap-2">
@@ -190,7 +197,9 @@
                             <td class="px-8 py-5 text-slate-600 text-sm">
                                 ${tglAwal} - ${tglAkhir}
                             </td>
-                            <td class="px-8 py-5 text-slate-600 font-medium">${item.JP} JP</td>
+                            <td class="px-8 py-5 text-slate-600 font-medium">
+                                ${item.status_sertif === 'ditolak' ? '<span class="line-through text-slate-300">' + item.JP + ' JP</span>' : item.JP + ' JP'}
+                            </td>
                             <td class="px-8 py-5 text-right">
                                 <button onclick="deleteData(${item.id})" class="text-red-500 hover:text-red-700 font-bold px-4 py-2 rounded-lg hover:bg-red-50 transition-all">
                                     Hapus
@@ -198,7 +207,11 @@
                             </td>
                         </tr>`;
                 });
-                totalJP.innerText = sumJP;
+
+                // Update angka dashboard
+                totalCountDisplay.innerText = validSertifCount;
+                totalJPDisplay.innerText = sumJP;
+
             } catch (err) {
                 console.error('Error:', err);
             }
@@ -230,7 +243,6 @@
             });
 
             const formData = new FormData(e.target);
-            const token = localStorage.getItem('token');
             try {
                 const res = await fetch('/api/keaktifan/upload', {
                     method: 'POST',
